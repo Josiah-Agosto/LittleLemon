@@ -15,8 +15,16 @@ struct PersistenceController {
     
     func clear() {
         // Delete all dishes from the store
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Dish")
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        let _ = try? container.persistentStoreCoordinator.execute(deleteRequest, with: container.viewContext)
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Dish")
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let results = try container.viewContext.fetch(fetchRequest)
+            for object in results {
+                guard let objectData = object as? NSManagedObject else { continue }
+                container.viewContext.delete(objectData)
+            }
+        } catch let error {
+            print("Detele all data in \(container) error:", error)
+        }
     }
 }
